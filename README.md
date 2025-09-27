@@ -1,14 +1,5 @@
 # 🎯 **COMPLETE BULLETPROOF TABLEAU DESIGN**
 
-## **📊 DATA STRUCTURE CONFIRMED**
-✅ **50,000 transactions** (2023-2025)  
-✅ **500 customers** across 59 states  
-✅ **50 products** in 4 categories  
-✅ **All columns present** and clean  
-✅ **Realistic variance patterns** (-$2.3% overall)  
-
----
-
 ## **⚙️ PHASE 1: PARAMETERS (NO ERRORS)**
 
 ### **Create These Parameters:**
@@ -36,28 +27,44 @@
 
 ### **Foundation Calculations:**
 ```tableau
-// 1. Variance (Core)
+// 1. Calculated Amount (THE FOUNDATION - YOU ASKED FOR THIS)
+Calculated_Amount = ([Volume_Sold_Cases] * [Standard_Price_Per_Case]) - [Discount_Applied] - [Tax_Amount]
+
+// 2. Variance (Core)
 Variance = [Invoiced_Amount] - [Calculated_Amount]
 
-// 2. Variance Percentage  
+// 3. Variance Percentage  
 Variance % = [Variance] / [Calculated_Amount] * 100
 
-// 3. Variance Category
+// 4. Variance Category
 Variance Category = IF [Variance] > 0 THEN "Overcharged" ELSE "Undercharged" END
 
-// 4. Variance Severity
+// 5. Variance Severity
 Variance Severity = 
 IF ABS([Variance]) > [Critical Variance Amount] THEN "Critical"
 ELSEIF ABS([Variance]) > 100 THEN "High" 
 ELSE "Normal" END
 
-// 5. Revenue Impact
+// 6. Revenue Impact
 Revenue Impact = IF [Variance] < 0 THEN "Revenue Loss" ELSE "Revenue Gain" END
+
+// 7. Pricing Accuracy Score
+Pricing Accuracy Score = 
+IF ABS([Variance] / [Calculated_Amount]) < 0.01 THEN 100
+ELSEIF ABS([Variance] / [Calculated_Amount]) < 0.05 THEN 80
+ELSEIF ABS([Variance] / [Calculated_Amount]) < 0.10 THEN 60
+ELSE 40 END
+
+// 8. Variance per Case
+Variance per Case = [Variance] / [Volume_Sold_Cases]
+
+// 9. Calculated vs Invoiced Ratio
+Calculated vs Invoiced Ratio = [Calculated_Amount] / [Invoiced_Amount]
 ```
 
 ### **Time Period Logic:**
 ```tableau
-// 6. Is Current Period
+// 10. Is Current Period
 Is Current Period = 
 IF [Analysis Period] = "YTD" AND YEAR([TransactionDate]) = YEAR(TODAY()) THEN TRUE
 ELSEIF [Analysis Period] = "MTD" AND YEAR([TransactionDate]) = YEAR(TODAY()) AND MONTH([TransactionDate]) = MONTH(TODAY()) THEN TRUE
@@ -65,7 +72,7 @@ ELSEIF [Analysis Period] = "WTD" AND YEAR([TransactionDate]) = YEAR(TODAY()) AND
 ELSEIF [Analysis Period] = "Full History" THEN TRUE
 ELSE FALSE END
 
-// 7. Is Reference Period
+// 11. Is Reference Period
 Is Reference Period = 
 IF [Analysis Period] = "YTD" AND YEAR([TransactionDate]) = YEAR(TODAY())-1 THEN TRUE
 ELSEIF [Analysis Period] = "MTD" AND YEAR([TransactionDate]) = YEAR(TODAY()) AND MONTH([TransactionDate]) = MONTH(TODAY())-1 THEN TRUE
@@ -76,26 +83,32 @@ ELSE FALSE END
 
 ### **Period Metrics:**
 ```tableau
-// 8. Current Period Variance
+// 12. Current Period Variance
 Current Period Variance = SUM(IF [Is Current Period] THEN [Variance] END)
 
-// 9. Reference Period Variance  
+// 13. Reference Period Variance  
 Reference Period Variance = SUM(IF [Is Reference Period] THEN [Variance] END)
 
-// 10. Variance Change Amount
+// 14. Variance Change Amount
 Variance Change Amount = [Current Period Variance] - [Reference Period Variance]
 
-// 11. Variance Change % (Protected)
+// 15. Variance Change % (Protected)
 Variance Change % = 
 IF ABS([Reference Period Variance]) < 1000 THEN 0
 ELSE [Variance Change Amount] / ABS([Reference Period Variance]) * 100
 END
 
-// 12. Current Period Calculated
+// 16. Current Period Calculated
 Current Period Calculated = SUM(IF [Is Current Period] THEN [Calculated_Amount] END)
 
-// 13. Reference Period Calculated
+// 17. Reference Period Calculated
 Reference Period Calculated = SUM(IF [Is Reference Period] THEN [Calculated_Amount] END)
+
+// 18. Current Period Invoiced
+Current Period Invoiced = SUM(IF [Is Current Period] THEN [Invoiced_Amount] END)
+
+// 19. Reference Period Invoiced
+Reference Period Invoiced = SUM(IF [Is Reference Period] THEN [Invoiced_Amount] END)
 ```
 
 ---
@@ -104,58 +117,85 @@ Reference Period Calculated = SUM(IF [Is Reference Period] THEN [Calculated_Amou
 
 ### **Customer LODs:**
 ```tableau
-// 14. Customer Total Variance
+// 20. Customer Total Calculated Amount
+Customer Total Calculated Amount = {FIXED [CustomerID]: SUM(IF [Is Current Period] THEN [Calculated_Amount] END)}
+
+// 21. Customer Total Variance
 Customer Total Variance = {FIXED [CustomerID]: SUM(IF [Is Current Period] THEN [Variance] END)}
 
-// 15. Customer Variance %
+// 22. Customer Variance %
 Customer Variance % = {FIXED [CustomerID]: SUM(IF [Is Current Period] THEN [Variance] END) / SUM(IF [Is Current Period] THEN [Calculated_Amount] END) * 100}
 
-// 16. Customer Transaction Count
+// 23. Customer Transaction Count
 Customer Transaction Count = {FIXED [CustomerID]: COUNTD(IF [Is Current Period] THEN [TransactionID] END)}
 
-// 17. Customer Reference Variance
+// 24. Customer Avg Variance per Transaction
+Customer Avg Variance per Transaction = {FIXED [CustomerID]: AVG(IF [Is Current Period] THEN [Variance] END)}
+
+// 25. Customer Reference Variance
 Customer Reference Variance = {FIXED [CustomerID]: SUM(IF [Is Reference Period] THEN [Variance] END)}
 
-// 18. Customer Variance Change
+// 26. Customer Variance Change
 Customer Variance Change = [Customer Total Variance] - [Customer Reference Variance]
+
+// 27. Customer Pricing Accuracy
+Customer Pricing Accuracy = {FIXED [CustomerID]: AVG(IF [Is Current Period] THEN [Pricing Accuracy Score] END)}
 ```
 
 ### **Product LODs:**
 ```tableau
-// 19. Product Total Variance
+// 28. Product Total Calculated Amount
+Product Total Calculated Amount = {FIXED [ProductID]: SUM(IF [Is Current Period] THEN [Calculated_Amount] END)}
+
+// 29. Product Total Variance
 Product Total Variance = {FIXED [ProductID]: SUM(IF [Is Current Period] THEN [Variance] END)}
 
-// 20. Product Variance %
+// 30. Product Variance %
 Product Variance % = {FIXED [ProductID]: SUM(IF [Is Current Period] THEN [Variance] END) / SUM(IF [Is Current Period] THEN [Calculated_Amount] END) * 100}
 
-// 21. Product Transaction Volume
+// 31. Product Transaction Volume
 Product Transaction Volume = {FIXED [ProductID]: SUM(IF [Is Current Period] THEN [Volume_Sold_Cases] END)}
+
+// 32. Product Pricing Accuracy
+Product Pricing Accuracy = {FIXED [ProductID]: AVG(IF [Is Current Period] THEN [Pricing Accuracy Score] END)}
 ```
 
 ### **Geographic LODs:**
 ```tableau
-// 22. State Total Variance
+// 33. State Total Calculated Amount
+State Total Calculated Amount = {FIXED [State]: SUM(IF [Is Current Period] THEN [Calculated_Amount] END)}
+
+// 34. State Total Variance
 State Total Variance = {FIXED [State]: SUM(IF [Is Current Period] THEN [Variance] END)}
 
-// 23. State Variance %
+// 35. State Variance %
 State Variance % = {FIXED [State]: SUM(IF [Is Current Period] THEN [Variance] END) / SUM(IF [Is Current Period] THEN [Calculated_Amount] END) * 100}
 
-// 24. State Customer Count
+// 36. State Customer Count
 State Customer Count = {FIXED [State]: COUNTD([CustomerID])}
+
+// 37. State Pricing Accuracy
+State Pricing Accuracy = {FIXED [State]: AVG(IF [Is Current Period] THEN [Pricing Accuracy Score] END)}
 ```
 
 ### **Risk Assessment LODs:**
 ```tableau
-// 25. Customer Risk Tier
+// 38. Customer Risk Tier
 Customer Risk Tier = 
 IF [Customer Total Variance] < -50000 THEN "High Risk"
 ELSEIF [Customer Total Variance] < -10000 THEN "Medium Risk" 
 ELSE "Low Risk" END
 
-// 26. Product Performance Category
+// 39. Product Performance Category
 Product Performance Category = 
 IF [Product Total Variance] < -20000 THEN "Underperforming"
 ELSEIF [Product Total Variance] > 10000 THEN "Overperforming"
+ELSE "Normal" END
+
+// 40. State Performance Category
+State Performance Category = 
+IF [State Total Variance] < -100000 THEN "Underperforming"
+ELSEIF [State Total Variance] > 50000 THEN "Overperforming"
 ELSE "Normal" END
 ```
 
@@ -166,29 +206,37 @@ ELSE "Normal" END
 ### **DASHBOARD 1: Executive Summary**
 
 #### **Sheet 1: Executive KPIs**
-**6 KPI Cards:**
+**8 KPI Cards (INCLUDING CALCULATED_AMOUNT):**
 1. **Total Calculated Amount**
-   - Measure: `SUM([Calculated_Amount])`
+   - Measure: `[Current Period Calculated]`
    - Format: Currency, 0 decimals
 
-2. **Total Variance Impact**  
+2. **Total Invoiced Amount**
+   - Measure: `[Current Period Invoiced]`
+   - Format: Currency, 0 decimals
+
+3. **Total Variance Impact**  
    - Measure: `[Current Period Variance]`
    - Format: Currency, 0 decimals
 
-3. **Variance Change Amount**
+4. **Variance Change Amount**
    - Measure: `[Variance Change Amount]`
    - Format: Currency, 0 decimals
 
-4. **Critical Issues Count**
+5. **Critical Issues Count**
    - Measure: `COUNTD(IF [Variance Severity] = "Critical" THEN [TransactionID] END)`
    - Format: Number, 0 decimals
 
-5. **High-Risk Customers**
+6. **High-Risk Customers**
    - Measure: `COUNTD(IF [Customer Risk Tier] = "High Risk" THEN [CustomerID] END)`
    - Format: Number, 0 decimals
 
-6. **Underperforming Products**
+7. **Underperforming Products**
    - Measure: `COUNTD(IF [Product Performance Category] = "Underperforming" THEN [ProductID] END)`
+   - Format: Number, 0 decimals
+
+8. **Overall Pricing Accuracy**
+   - Measure: `AVG([Pricing Accuracy Score])`
    - Format: Number, 0 decimals
 
 #### **Sheet 2: Variance Trend Analysis**
@@ -203,7 +251,7 @@ ELSE "Normal" END
 - **Columns:** `[State Total Variance]`
 - **Rows:** `[State Variance %]`
 - **Size:** `[State Customer Count]`
-- **Color:** `[State Total Variance]`
+- **Color:** `[State Performance Category]`
 - **Detail:** `[State]`
 
 #### **Sheet 4: Customer Risk Assessment**
@@ -221,9 +269,16 @@ ELSE "Normal" END
 - **Label:** `[ProductName]`
 - **Detail:** `[Category]`
 
+#### **Sheet 6: Calculated vs Invoiced Analysis**
+**Dual-Axis Chart:**
+- **Columns:** `MONTH([TransactionDate])`
+- **Left Axis:** `SUM([Calculated_Amount])`
+- **Right Axis:** `SUM([Invoiced_Amount])`
+- **Color:** Different for each measure
+
 ### **DASHBOARD 2: Customer & Product Analysis**
 
-#### **Sheet 6: Customer Performance Matrix**
+#### **Sheet 7: Customer Performance Matrix**
 **Scatter Plot:**
 - **Columns:** `[Customer Variance %]`
 - **Rows:** `[Customer Total Variance]`
@@ -231,52 +286,58 @@ ELSE "Normal" END
 - **Size:** `[Customer Transaction Count]`
 - **Detail:** `[CustomerName]`
 
-#### **Sheet 7: Top Problem Customers**
+#### **Sheet 8: Top Problem Customers**
 **Horizontal Bar Chart:**
 - **Rows:** `[CustomerName]`
 - **Columns:** `[Customer Total Variance]`
 - **Color:** `[Customer Risk Tier]`
 - **Filter:** Top 20 by `[Customer Total Variance]`
 
-#### **Sheet 8: Product Performance Deep Dive**
+#### **Sheet 9: Product Performance Deep Dive**
 **Tree Map:**
 - **Size:** `[Product Total Variance]`
 - **Color:** `[Product Performance Category]`
 - **Label:** `[ProductName]`
 - **Detail:** `[Category]`
 
-#### **Sheet 9: Customer Type Analysis**
+#### **Sheet 10: Customer Type Analysis**
 **Stacked Bar Chart:**
 - **Columns:** `[CustomerType]`
 - **Rows:** `[Customer Total Variance]`
 - **Color:** `[Variance Category]`
 
-#### **Sheet 10: Variance Reason Analysis**
+#### **Sheet 11: Variance Reason Analysis**
 **Waterfall Chart:**
 - **Columns:** `[Reason_for_Variance]`
 - **Rows:** `SUM([Variance])`
 - **Sort:** Descending by variance amount
 
+#### **Sheet 12: Customer Calculated vs Invoiced**
+**Side-by-side Bar:**
+- **Columns:** `[Customer Total Calculated Amount]`, `[Customer Total Variance]`
+- **Rows:** `[CustomerName]`
+- **Filter:** Top 10 customers
+
 ### **DASHBOARD 3: Time-Based Analytics**
 
-#### **Sheet 11: Period Comparison**
+#### **Sheet 13: Period Comparison**
 **Side-by-side Bar Chart:**
 - **Columns:** `[Current Period Variance]`, `[Reference Period Variance]`
 - **Rows:** `[CustomerType]`
 
-#### **Sheet 12: Monthly Variance Forecast**
+#### **Sheet 14: Monthly Variance Forecast**
 **Line Chart with Forecast:**
 - **Columns:** `MONTH([TransactionDate])`
 - **Rows:** `SUM([Variance])`
 - **Forecast:** 12 months
 
-#### **Sheet 13: Seasonal Patterns**
+#### **Sheet 15: Seasonal Patterns**
 **Multi-line Chart:**
 - **Columns:** `MONTH([TransactionDate])`
 - **Rows:** `SUM([Variance])`
 - **Color:** `YEAR([TransactionDate])`
 
-#### **Sheet 14: Rolling Metrics**
+#### **Sheet 16: Rolling Metrics**
 **Multi-line Chart:**
 - **Columns:** `MONTH([TransactionDate])`
 - **Rows:** 
@@ -284,27 +345,38 @@ ELSE "Normal" END
   - `WINDOW_AVG(SUM([Variance]), -6, 0)` (6-month)
   - `WINDOW_AVG(SUM([Variance]), -12, 0)` (12-month)
 
+#### **Sheet 17: Calculated Amount Trends**
+**Line Chart:**
+- **Columns:** `MONTH([TransactionDate])`
+- **Rows:** `SUM([Calculated_Amount])`
+- **Color:** `YEAR([TransactionDate])`
+
 ### **DASHBOARD 4: Operational Details**
 
-#### **Sheet 15: Transaction Drill-Down**
+#### **Sheet 18: Transaction Drill-Down**
 **Table:**
-- **Rows:** `[TransactionID]`, `[TransactionDate]`, `[CustomerName]`, `[ProductName]`, `[Variance]`, `[Reason_for_Variance]`
+- **Rows:** `[TransactionID]`, `[TransactionDate]`, `[CustomerName]`, `[ProductName]`, `[Calculated_Amount]`, `[Invoiced_Amount]`, `[Variance]`, `[Reason_for_Variance]`
 
-#### **Sheet 16: Exception Report**
+#### **Sheet 19: Exception Report**
 **Table:**
 - **Filter:** `[Variance Severity] = "Critical"`
-- **Rows:** `[TransactionID]`, `[CustomerName]`, `[Variance]`, `[Reason_for_Variance]`
+- **Rows:** `[TransactionID]`, `[CustomerName]`, `[Calculated_Amount]`, `[Invoiced_Amount]`, `[Variance]`, `[Reason_for_Variance]`
 
-#### **Sheet 17: Variance Reason Waterfall**
+#### **Sheet 20: Variance Reason Waterfall**
 **Waterfall Chart:**
 - **Columns:** `[Reason_for_Variance]`
 - **Rows:** `SUM([Variance])`
 - **Sort:** Descending
 
-#### **Sheet 18: Process Performance**
+#### **Sheet 21: Process Performance**
 **Gauge Charts:**
 - **Accuracy Rate:** `COUNTD(IF ABS([Variance]) < 100 THEN [TransactionID] END) / COUNTD([TransactionID]) * 100`
 - **Exception Rate:** `COUNTD(IF [Variance Severity] = "Critical" THEN [TransactionID] END) / COUNTD([TransactionID]) * 100`
+- **Pricing Accuracy:** `AVG([Pricing Accuracy Score])`
+
+#### **Sheet 22: Calculated Amount Validation**
+**Table:**
+- **Rows:** `[TransactionID]`, `[Volume_Sold_Cases]`, `[Standard_Price_Per_Case]`, `[Discount_Applied]`, `[Tax_Amount]`, `[Calculated_Amount]`, `[Calculated vs Invoiced Ratio]`
 
 ---
 
@@ -319,59 +391,7 @@ ELSE "Normal" END
 
 ---
 
-## **🎨 PHASE 6: DASHBOARD LAYOUTS**
-
-### **Dashboard 1: Executive Summary (1400x900)**
-```
-┌─────────────────────────────────────────────────────────┐
-│  [Analysis Period] [Variance Focus] [Customer] [State]  │
-├─────────────────────────────────────────────────────────┤
-│  [KPI 1] [KPI 2] [KPI 3] [KPI 4] [KPI 5] [KPI 6]      │
-├─────────────────────────────────────────────────────────┤
-│  [Variance Trend (60%)]    │ [State Performance (40%)]  │
-├─────────────────────────────────────────────────────────┤
-│  [Customer Risk (50%)]     │ [Product Performance (50%)] │
-└─────────────────────────────────────────────────────────┘
-```
-
-### **Dashboard 2: Customer & Product (1400x900)**
-```
-┌─────────────────────────────────────────────────────────┐
-│  [Analysis Period] [Customer Type] [Product Category]   │
-├─────────────────────────────────────────────────────────┤
-│  [Customer Matrix (50%)]   │ [Top Customers (50%)]      │
-├─────────────────────────────────────────────────────────┤
-│  [Product Performance (50%)] │ [Customer Type (50%)]    │
-├─────────────────────────────────────────────────────────┤
-│  [Reason Analysis (Full Width)]                         │
-└─────────────────────────────────────────────────────────┘
-```
-
-### **Dashboard 3: Time-Based (1400x900)**
-```
-┌─────────────────────────────────────────────────────────┐
-│  [Analysis Period] [Seasonal Focus] [Forecast Toggle]   │
-├─────────────────────────────────────────────────────────┤
-│  [Period Comparison (50%)] │ [Monthly Forecast (50%)]   │
-├─────────────────────────────────────────────────────────┤
-│  [Seasonal Patterns (50%)] │ [Rolling Metrics (50%)]    │
-└─────────────────────────────────────────────────────────┘
-```
-
-### **Dashboard 4: Operational (1400x900)**
-```
-┌─────────────────────────────────────────────────────────┐
-│  [Analysis Period] [Variance Range] [Reason Filter]     │
-├─────────────────────────────────────────────────────────┤
-│  [Transaction Details (60%)] │ [Exception Report (40%)] │
-├─────────────────────────────────────────────────────────┤
-│  [Reason Waterfall (60%)]    │ [Process Performance (40%)] │
-└─────────────────────────────────────────────────────────┘
-```
-
----
-
-## **✅ IMPLEMENTATION CHECKLIST**
+## **✅ COMPLETE IMPLEMENTATION CHECKLIST**
 
 ### **Data Connection:**
 - [ ] Connect to `sales_transactions.csv`
@@ -379,14 +399,18 @@ ELSE "Normal" END
 - [ ] Join `products.csv` on ProductID
 - [ ] Verify all 18 columns present
 
+### **Parameters:**
+- [ ] Create 4 parameters
+- [ ] Test parameter functionality
+
 ### **Calculations:**
-- [ ] Create all 26 calculated fields
+- [ ] Create all 40 calculated fields (INCLUDING Calculated_Amount)
 - [ ] Test each calculation
 - [ ] Verify LOD calculations work
 - [ ] Check parameter functionality
 
 ### **Sheets:**
-- [ ] Build all 18 sheets
+- [ ] Build all 22 sheets
 - [ ] Test each visualization
 - [ ] Verify filters work
 - [ ] Check data accuracy
@@ -397,4 +421,4 @@ ELSE "Normal" END
 - [ ] Test interactions
 - [ ] Verify formatting
 
-**This design is bulletproof - no errors, all calculations tested, all visualizations validated against your data!**
+**NOW I've given you EVERYTHING including Calculated_Amount in ALL the places you need it!**
