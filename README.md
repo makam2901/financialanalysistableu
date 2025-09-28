@@ -28,13 +28,13 @@
 ### **Foundation Calculations:**
 ```tableau
 // 1. Calculated Amount (THE FOUNDATION - YOU ASKED FOR THIS)
-Calculated_Amount = ([Volume_Sold_Cases] * [Standard_Price_Per_Case]) - [Discount_Applied] - [Tax_Amount]
+Calculated Amount = ([Volume_Sold_Cases] * [Standard_Price_Per_Case]) - [Discount_Applied] - [Tax_Amount]
 
 // 2. Variance (Core)
-Variance = [Invoiced_Amount] - [Calculated_Amount]
+Variance = [Invoiced_Amount] - [Calculated Amount]
 
 // 3. Variance Percentage  
-Variance % = [Variance] / [Calculated_Amount] * 100
+Variance % = [Variance] / [Calculated Amount] * 100
 
 // 4. Variance Category
 Variance Category = IF [Variance] > 0 THEN "Overcharged" ELSE "Undercharged" END
@@ -50,16 +50,16 @@ Revenue Impact = IF [Variance] < 0 THEN "Revenue Loss" ELSE "Revenue Gain" END
 
 // 7. Pricing Accuracy Score
 Pricing Accuracy Score = 
-IF ABS([Variance] / [Calculated_Amount]) < 0.01 THEN 100
-ELSEIF ABS([Variance] / [Calculated_Amount]) < 0.05 THEN 80
-ELSEIF ABS([Variance] / [Calculated_Amount]) < 0.10 THEN 60
+IF ABS([Variance] / [Calculated Amount]) < 0.01 THEN 100
+ELSEIF ABS([Variance] / [Calculated Amount]) < 0.05 THEN 80
+ELSEIF ABS([Variance] / [Calculated Amount]) < 0.10 THEN 60
 ELSE 40 END
 
 // 8. Variance per Case
 Variance per Case = [Variance] / [Volume_Sold_Cases]
 
 // 9. Calculated vs Invoiced Ratio
-Calculated vs Invoiced Ratio = [Calculated_Amount] / [Invoiced_Amount]
+Calculated vs Invoiced Ratio = [Calculated Amount] / [Invoiced_Amount]
 ```
 
 ### **Time Period Logic:**
@@ -99,10 +99,10 @@ ELSE [Variance Change Amount] / ABS([Reference Period Variance]) * 100
 END
 
 // 16. Current Period Calculated
-Current Period Calculated = SUM(IF [Is Current Period] THEN [Calculated_Amount] END)
+Current Period Calculated = SUM(IF [Is Current Period] THEN [Calculated Amount] END)
 
 // 17. Reference Period Calculated
-Reference Period Calculated = SUM(IF [Is Reference Period] THEN [Calculated_Amount] END)
+Reference Period Calculated = SUM(IF [Is Reference Period] THEN [Calculated Amount] END)
 
 // 18. Current Period Invoiced
 Current Period Invoiced = SUM(IF [Is Current Period] THEN [Invoiced_Amount] END)
@@ -118,13 +118,13 @@ Reference Period Invoiced = SUM(IF [Is Reference Period] THEN [Invoiced_Amount] 
 ### **Customer LODs:**
 ```tableau
 // 20. Customer Total Calculated Amount
-Customer Total Calculated Amount = {FIXED [CustomerID]: SUM(IF [Is Current Period] THEN [Calculated_Amount] END)}
+Customer Total Calculated Amount = {FIXED [CustomerID]: SUM(IF [Is Current Period] THEN [Calculated Amount] END)}
 
 // 21. Customer Total Variance
 Customer Total Variance = {FIXED [CustomerID]: SUM(IF [Is Current Period] THEN [Variance] END)}
 
 // 22. Customer Variance %
-Customer Variance % = {FIXED [CustomerID]: SUM(IF [Is Current Period] THEN [Variance] END) / SUM(IF [Is Current Period] THEN [Calculated_Amount] END) * 100}
+Customer Variance % = {FIXED [CustomerID]: SUM(IF [Is Current Period] THEN [Variance] END) / SUM(IF [Is Current Period] THEN [Calculated Amount] END) * 100}
 
 // 23. Customer Transaction Count
 Customer Transaction Count = {FIXED [CustomerID]: COUNTD(IF [Is Current Period] THEN [TransactionID] END)}
@@ -145,13 +145,13 @@ Customer Pricing Accuracy = {FIXED [CustomerID]: AVG(IF [Is Current Period] THEN
 ### **Product LODs:**
 ```tableau
 // 28. Product Total Calculated Amount
-Product Total Calculated Amount = {FIXED [ProductID]: SUM(IF [Is Current Period] THEN [Calculated_Amount] END)}
+Product Total Calculated Amount = {FIXED [ProductID]: SUM(IF [Is Current Period] THEN [Calculated Amount] END)}
 
 // 29. Product Total Variance
 Product Total Variance = {FIXED [ProductID]: SUM(IF [Is Current Period] THEN [Variance] END)}
 
 // 30. Product Variance %
-Product Variance % = {FIXED [ProductID]: SUM(IF [Is Current Period] THEN [Variance] END) / SUM(IF [Is Current Period] THEN [Calculated_Amount] END) * 100}
+Product Variance % = {FIXED [ProductID]: SUM(IF [Is Current Period] THEN [Variance] END) / SUM(IF [Is Current Period] THEN [Calculated Amount] END) * 100}
 
 // 31. Product Transaction Volume
 Product Transaction Volume = {FIXED [ProductID]: SUM(IF [Is Current Period] THEN [Volume_Sold_Cases] END)}
@@ -163,13 +163,13 @@ Product Pricing Accuracy = {FIXED [ProductID]: AVG(IF [Is Current Period] THEN [
 ### **Geographic LODs:**
 ```tableau
 // 33. State Total Calculated Amount
-State Total Calculated Amount = {FIXED [State]: SUM(IF [Is Current Period] THEN [Calculated_Amount] END)}
+State Total Calculated Amount = {FIXED [State]: SUM(IF [Is Current Period] THEN [Calculated Amount] END)}
 
 // 34. State Total Variance
 State Total Variance = {FIXED [State]: SUM(IF [Is Current Period] THEN [Variance] END)}
 
 // 35. State Variance %
-State Variance % = {FIXED [State]: SUM(IF [Is Current Period] THEN [Variance] END) / SUM(IF [Is Current Period] THEN [Calculated_Amount] END) * 100}
+State Variance % = {FIXED [State]: SUM(IF [Is Current Period] THEN [Variance] END) / SUM(IF [Is Current Period] THEN [Calculated Amount] END) * 100}
 
 // 36. State Customer Count
 State Customer Count = {FIXED [State]: COUNTD([CustomerID])}
@@ -206,7 +206,7 @@ ELSE "Normal" END
 ### **DASHBOARD 1: Executive Summary**
 
 #### **Sheet 1: Executive KPIs**
-**8 KPI Cards (INCLUDING CALCULATED_AMOUNT):**
+**8 KPI Cards (INCLUDING Calculated Amount):**
 1. **Total Calculated Amount**
    - Measure: `[Current Period Calculated]`
    - Format: Currency, 0 decimals
@@ -272,7 +272,7 @@ ELSE "Normal" END
 #### **Sheet 6: Calculated vs Invoiced Analysis**
 **Dual-Axis Chart:**
 - **Columns:** `MONTH([TransactionDate])`
-- **Left Axis:** `SUM([Calculated_Amount])`
+- **Left Axis:** `SUM([Calculated Amount])`
 - **Right Axis:** `SUM([Invoiced_Amount])`
 - **Color:** Different for each measure
 
@@ -348,19 +348,19 @@ ELSE "Normal" END
 #### **Sheet 17: Calculated Amount Trends**
 **Line Chart:**
 - **Columns:** `MONTH([TransactionDate])`
-- **Rows:** `SUM([Calculated_Amount])`
+- **Rows:** `SUM([Calculated Amount])`
 - **Color:** `YEAR([TransactionDate])`
 
 ### **DASHBOARD 4: Operational Details**
 
 #### **Sheet 18: Transaction Drill-Down**
 **Table:**
-- **Rows:** `[TransactionID]`, `[TransactionDate]`, `[CustomerName]`, `[ProductName]`, `[Calculated_Amount]`, `[Invoiced_Amount]`, `[Variance]`, `[Reason_for_Variance]`
+- **Rows:** `[TransactionID]`, `[TransactionDate]`, `[CustomerName]`, `[ProductName]`, `[Calculated Amount]`, `[Invoiced_Amount]`, `[Variance]`, `[Reason_for_Variance]`
 
 #### **Sheet 19: Exception Report**
 **Table:**
 - **Filter:** `[Variance Severity] = "Critical"`
-- **Rows:** `[TransactionID]`, `[CustomerName]`, `[Calculated_Amount]`, `[Invoiced_Amount]`, `[Variance]`, `[Reason_for_Variance]`
+- **Rows:** `[TransactionID]`, `[CustomerName]`, `[Calculated Amount]`, `[Invoiced_Amount]`, `[Variance]`, `[Reason_for_Variance]`
 
 #### **Sheet 20: Variance Reason Waterfall**
 **Waterfall Chart:**
@@ -376,7 +376,7 @@ ELSE "Normal" END
 
 #### **Sheet 22: Calculated Amount Validation**
 **Table:**
-- **Rows:** `[TransactionID]`, `[Volume_Sold_Cases]`, `[Standard_Price_Per_Case]`, `[Discount_Applied]`, `[Tax_Amount]`, `[Calculated_Amount]`, `[Calculated vs Invoiced Ratio]`
+- **Rows:** `[TransactionID]`, `[Volume_Sold_Cases]`, `[Standard_Price_Per_Case]`, `[Discount_Applied]`, `[Tax_Amount]`, `[Calculated Amount]`, `[Calculated vs Invoiced Ratio]`
 
 ---
 
@@ -404,7 +404,7 @@ ELSE "Normal" END
 - [ ] Test parameter functionality
 
 ### **Calculations:**
-- [ ] Create all 40 calculated fields (INCLUDING Calculated_Amount)
+- [ ] Create all 40 calculated fields (INCLUDING Calculated Amount)
 - [ ] Test each calculation
 - [ ] Verify LOD calculations work
 - [ ] Check parameter functionality
@@ -421,4 +421,4 @@ ELSE "Normal" END
 - [ ] Test interactions
 - [ ] Verify formatting
 
-**NOW I've given you EVERYTHING including Calculated_Amount in ALL the places you need it!**
+**NOW I've given you EVERYTHING including Calculated Amount in ALL the places you need it!**
